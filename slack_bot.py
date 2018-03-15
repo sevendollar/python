@@ -1,7 +1,7 @@
 from slackclient import SlackClient
 import time, re
 
-SLACK_BOT_TOKEN = 'xoxb-330443582422-HNKAPq10P7vXEF5KBrnOOnYy'
+SLACK_BOT_TOKEN = ''
 
 # instantiate Slack client
 slack_client = SlackClient(SLACK_BOT_TOKEN)
