@@ -2,6 +2,7 @@
 
 import datetime
 
+
 def star_sign(date):
     year, month, day = str(date).split('-')
     year = int(year)
@@ -48,20 +49,25 @@ def star_sign_range(start, end):
         return tuple(i.capitalize() for i in star_signs[start_index:] + star_signs[:end_index + 1])
 
 
-MIN_PREGNANCY = 37
-MAX_PREGNANCY = 42
-today = datetime.date.today()
-input_year, input_month, input_day = input('pregnant day(yyyy/mm/dd)?\n').split('/')
-pregnant_day = datetime.date(year=int(input_year), month=int(input_month), day=int(input_day))
-min_pregnancy_period = datetime.timedelta(weeks=MIN_PREGNANCY)
-max_pregnancy_period = datetime.timedelta(weeks=MAX_PREGNANCY)
-min_deliver_day = pregnant_day + min_pregnancy_period
-max_deliver_day = pregnant_day + max_pregnancy_period
+def main():
+    MIN_PREGNANCY = 37
+    MAX_PREGNANCY = 42
+    today = datetime.date.today()
+    input_year, input_month, input_day = input('When did you get knocked up? (yyyy/mm/dd)?\n').split('/')
+    pregnant_day = datetime.date(int(input_year), int(input_month), int(input_day))
+    min_pregnancy_period = datetime.timedelta(weeks=MIN_PREGNANCY)
+    max_pregnancy_period = datetime.timedelta(weeks=MAX_PREGNANCY)
+    min_deliver_day = pregnant_day + min_pregnancy_period
+    max_deliver_day = pregnant_day + max_pregnancy_period
 
-starsign_range = star_sign_range(star_sign(min_deliver_day), star_sign(max_deliver_day))
-if min_deliver_day < today or max_deliver_day < today:
-    print(f'''you have delivered a bady either with a star sign of '{starsign_range}'... aged {today.year - pregnant_day.year - 1}''')
-else:
-    min_time_to_deliver, max_time_to_deliver= max_deliver_day - today, min_deliver_day - today
-    print(f'''{max_time_to_deliver.days}~{min_time_to_deliver.days} days...deliver day could be between {min_deliver_day} and {max_deliver_day}, will be {starsign_range}''')
+    starsign_range = star_sign_range(star_sign(min_deliver_day), star_sign(max_deliver_day))
+    if min_deliver_day < today or max_deliver_day < today:
+        print(f'''you have delivered a bady with a posible star sign of either '{starsign_range}'... aged {today.year - pregnant_day.year - 1}''')
+    else:
+        min_time_to_deliver, max_time_to_deliver = max_deliver_day - today, min_deliver_day - today
+        print(f'''{max_time_to_deliver.days}~{min_time_to_deliver.days} days...deliver day could be between {min_deliver_day} and {max_deliver_day}, star sign will be {starsign_range}''')
+
+
+if __name__ == '__main__':
+    main()
 
