@@ -13,3 +13,5 @@ remote_connection.send('show running-config\n')
 time.sleep(1)
 output = remote_connection.recv(65535)
 print(output.decode('UTF-8'))
+
+ssh_client.close
