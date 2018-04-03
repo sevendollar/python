@@ -21,10 +21,10 @@ class Ruckus:
     logon_url = 'https://wifi.cvl.com.tw/admin/login.jsp'
     dashboard_url = 'https://wifi.cvl.com.tw/admin/dashboard.jsp'
     conf_acl_url = 'https://wifi.cvl.com.tw/admin/conf_acls.jsp'
-    acl = 'edit-acl-2'
     acls = None
 
     def __init__(self, username, password):
+        self.macs = {}
         self.driver = webdriver.PhantomJS(service_args=['--ignore-ssl-errors=true'])
         self.driver.implicitly_wait(30)
         self.driver.set_window_size(1024, 768)
@@ -36,43 +36,62 @@ class Ruckus:
         time.sleep(3)  # wait for the authentication page to be loaded.
         self.get_acls()
 
+    def add_mac(self, mac, acl_list=None):
+        if acl_list is None:
+            acl_list = self.__class__.acls[-1]
+        else:
+            acl_list = acl_list
 
-    def add_mac(self, mac):
         if not self.exist_mac(mac):
-            self.driver.get(self.__class__.conf_acl_url)
-            self.driver.find_element_by_css_selector(f'[id="{self.__class__.acl}"]').click()
+            self.driver.get(self.__class__.conf_acl_url)  # go to configuration page.
+            self.driver.find_element_by_css_selector(f'[id="{acl_list}"]').click()
             self.driver.find_element_by_css_selector(f'[id="mac"]').send_keys(mac)
             self.driver.find_element_by_css_selector('[id="create-new-station"]').click()
             self.driver.find_element_by_css_selector('[id="ok-acl"]').click()
-            return 'success added the mac.'
+            time.sleep(2)  # wait for data syncing.
+            return 'success'
         else:
-            return 'mac existed.'
+            return 'failed, MAC existed'
 
-    def remove_mac(self, mac):
-        # todo remove the specified mac.
-        if self.exist_mac(mac):
-            pass
-            return 'success remove the mac.'
+    def remove_mac(self, mac, acl_list=None):
+        if acl_list is None:
+            acl_list = self.__class__.acls[-1]
         else:
-            return "mac doesn't exist."
+            acl_list = acl_list
+
+        x = self.exist_mac(mac)
+        if x:
+            self.driver.get(self.__class__.conf_acl_url)  # go to configuration page.
+            self.driver.find_element_by_css_selector(f'[id="{acl_list}"]').click()
+            #  TODO: remove the specified mac.
+            return 'success'
+        else:
+            return 'failed, MAC doesn\'t exist'
 
     def all_mac(self):
-        self.driver.get(self.__class__.conf_acl_url)
-        self.driver.find_element_by_css_selector(f'[id="{self.__class__.acl}"]').click()
-        # self.driver.find_element_by_css_selector(f'[id="edit-acl-1"]').click()
-        macs = self.driver.find_element_by_css_selector('#staTable').text
-        return tuple(macs.replace(' delete', '').replace('\n', ' ').lower().split(' '))
+        self.driver.get(self.__class__.conf_acl_url)  # go to configuration page.
+        for acl in self.__class__.acls:  # loop through acl list.
+            self.driver.find_element_by_css_selector(f'[id="{acl}"]').click()  # click "EDIT" button.
+            macs = self.driver.find_element_by_css_selector('#staTable').text  # get MACs.
+            filtered_macs = tuple(macs.replace(' delete', '').replace('\n', ' ').lower().split(' '))  # filter out unwanted charactors.
+            self.macs.setdefault(acl, filtered_macs)  # put MACs into dictionary with acl as key.
+        return self.macs
 
     def exist_mac(self, mac):
-        if mac in self.all_mac():
-            return True
+        for k, v in self.all_mac().items():  # loop through MAC list.
+            if mac in v:  # if target mac in the MAC list.
+                return k  # return acl.
         return False
 
     def get_acls(self):
-        self.driver.get('https://wifi.cvl.com.tw/admin/conf_acls.jsp')
-        acl_objs = self.driver.find_element_by_css_selector('table#acl.listTable > tbody').find_elements_by_css_selector('td.action > span')  # get acl lists
-        self.__class__.acls = tuple([i.get_attribute('id') for i in acl_objs if 'edit' in i.get_attribute('id')])  # filter out the acl
+        self.driver.get(self.__class__.conf_acl_url)  # go to configuration page.
+        acl_objs = self.driver.find_element_by_css_selector('table#acl.listTable > tbody').find_elements_by_css_selector('td.action > span')  # get acl lists.
+        self.__class__.acls = tuple([i.get_attribute('id') for i in acl_objs if 'edit' in i.get_attribute('id')])  # filter out unwanted charactors.
         return self.__class__.acls
+
+    def __repr__(self):
+        pass
+        #  TODO: return something.
 
     def __del__(self):
         return self.driver.quit()
@@ -81,10 +100,10 @@ class Ruckus:
 if __name__ == '__main__':
     user = os.environ.get('RUCKUS_USER')
     pw = os.environ.get('RUCKUS_PASS')
+    mac = 'cc:cc:cc:cc:cc:cc'
 
     r1 = Ruckus(user, pw)
-    x = r1.get_acls()
-    print(x)
+    print(r1.all_mac())
 
     del r1
 
