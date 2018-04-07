@@ -22,6 +22,7 @@ class Ruckus:
     dashboard_url = 'https://wifi.cvl.com.tw/admin/dashboard.jsp'
     conf_acl_url = 'https://wifi.cvl.com.tw/admin/conf_acls.jsp'
     acls = None
+    data_sync_time = 2
 
     def __init__(self, username, password):
         self.macs = {}
@@ -48,22 +49,26 @@ class Ruckus:
             self.driver.find_element_by_css_selector(f'[id="mac"]').send_keys(mac)
             self.driver.find_element_by_css_selector('[id="create-new-station"]').click()
             self.driver.find_element_by_css_selector('[id="ok-acl"]').click()
-            time.sleep(2)  # wait for data syncing.
+            time.sleep(self.__class__.data_sync_time)  # wait for data syncing.
             return 'success'
         else:
             return 'failed, MAC existed'
 
-    def remove_mac(self, mac, acl_list=None):
-        if acl_list is None:
-            acl_list = self.__class__.acls[-1]
-        else:
-            acl_list = acl_list
-
-        x = self.exist_mac(mac)
-        if x:
+    def remove_mac(self, mac):
+        acl_list = self.exist_mac(mac)
+        if acl_list:
             self.driver.get(self.__class__.conf_acl_url)  # go to configuration page.
             self.driver.find_element_by_css_selector(f'[id="{acl_list}"]').click()
-            #  TODO: remove the specified mac.
+            macs_location = self.driver.find_element_by_css_selector('#staTable').find_elements_by_tag_name('td')
+            for location in macs_location:
+                if location.text == mac:
+                    delete_index = macs_location.index(location) + 1
+                    macs_location[delete_index].find_element_by_css_selector('span#delete').click()
+                    break
+            else:
+                pass
+            self.driver.find_element_by_css_selector('[id="ok-acl"]').click()
+            time.sleep(self.__class__.data_sync_time)  # wait for data syncing.
             return 'success'
         else:
             return 'failed, MAC doesn\'t exist'
@@ -100,10 +105,12 @@ class Ruckus:
 if __name__ == '__main__':
     user = os.environ.get('RUCKUS_USER')
     pw = os.environ.get('RUCKUS_PASS')
-    mac = 'cc:cc:cc:cc:cc:cc'
+    mac = 'dd:dd:dd:cc:cc:cc'
 
     r1 = Ruckus(user, pw)
-    print(r1.all_mac())
+    print(r1.add_mac(mac))
+    print(r1.exist_mac(mac))
+    # print(r1.remove_mac(mac))
 
     del r1
 
