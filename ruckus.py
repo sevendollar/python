@@ -1,10 +1,7 @@
 #!/usr/bin/python
 
-import os
-import time
+import os, time
 from selenium import webdriver
-from bs4 import BeautifulSoup
-import re
 
 # profile = webdriver.FirefoxProfile()
 # profile.default_preferences['webdriver_assume_untrusted_issuer'] = False
@@ -21,7 +18,7 @@ class Ruckus:
     logon_url = 'https://wifi.cvl.com.tw/admin/login.jsp'
     dashboard_url = 'https://wifi.cvl.com.tw/admin/dashboard.jsp'
     conf_acl_url = 'https://wifi.cvl.com.tw/admin/conf_acls.jsp'
-    data_sync_time = 3
+    data_sync_time = 4
 
     def __init__(self, username, password):
         self.macs = {}
@@ -47,10 +44,10 @@ class Ruckus:
             self.driver.find_element_by_css_selector(f'[id="mac"]').send_keys(mac)
             self.driver.find_element_by_css_selector('[id="create-new-station"]').click()
             self.driver.find_element_by_css_selector('[id="ok-acl"]').click()
-            self.driver.refresh()
-            return 'success'
+            time.sleep(self.__class__.data_sync_time)
+            return True
         else:
-            return 'failed, MAC existed'
+            return False
 
     def remove_mac(self, mac):
         acl_list = self.exist_mac(mac)
@@ -66,10 +63,10 @@ class Ruckus:
             else:
                 pass
             self.driver.find_element_by_css_selector('[id="ok-acl"]').click()
-            self.driver.refresh()
-            return 'success'
+            time.sleep(self.__class__.data_sync_time)
+            return True
         else:
-            return 'failed, MAC doesn\'t exist'
+            return False
 
     def get_macs(self):
         self.driver.get(self.__class__.conf_acl_url)  # go to configuration page.
@@ -92,32 +89,30 @@ class Ruckus:
         return tuple([i.get_attribute('id') for i in acl_objs if 'edit' in i.get_attribute('id')])  # filter out unwanted charactors.
 
     def __repr__(self):
-        #  TODO: return something.
         return f'{self.driver.title}'
 
     def __del__(self):
         return self.driver.quit()
 
 
-def check_time(origin_func):
+def spend_time(origin_func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
         f = origin_func(*args, **kwargs)
+        # print(f'{round(time.time() - start_time)} seconds.')
         print(f'{round(time.time() - start_time)} seconds.')
         return f
     return wrapper
 
 
-@check_time
+@spend_time
 def main():
     user = os.environ.get('RUCKUS_USER')
     pw = os.environ.get('RUCKUS_PASS')
-    mac = 'ff:ff:ff:ff:ff:ff'
-
     r = Ruckus(user, pw)
+    print(r.get_macs())
     del r
 
 
 if __name__ == '__main__':
     main()
-
