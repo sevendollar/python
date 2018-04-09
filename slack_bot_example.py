@@ -1,8 +1,5 @@
-#!/bin/sh/python
-
 from slackclient import SlackClient
 import time, re, os
-from ruckus import Ruckus
 
 SLACK_BOT_TOKEN = os.environ.get('SLACK_BOT_TOKEN')
 
@@ -48,25 +45,8 @@ def handle_command(command, channel):
     # Finds and executes the given command, filling in response
     response = None
     # This is where you start to implement more commands!
-    if command.startswith('add'):
-        user = os.environ.get('RUCKUS_USER')
-        pw = os.environ.get('RUCKUS_PASS')
-        mac = command.split(" ")[1].strip()
-        r = Ruckus(user, pw)
-        print(mac)
-        if r.add_mac(mac):
-            response = f'successfully added {mac}...:tada:'
-        else:
-            response = 'failed, MAC existed...'
-        del r
-    elif command == 'get mac':
-        user = os.environ.get('RUCKUS_USER')
-        pw = os.environ.get('RUCKUS_PASS')
-        r = Ruckus(user, pw)
-        response = f'{r.get_macs()}'
-        del r
-    else:
-        response = default_response
+    if command.startswith(EXAMPLE_COMMAND):
+        response = "Sure...write some more code then I can do that!"
 
     # Sends the response back to the channel
     slack_client.api_call(
