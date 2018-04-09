@@ -99,7 +99,6 @@ def spend_time(origin_func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
         f = origin_func(*args, **kwargs)
-        # print(f'{round(time.time() - start_time)} seconds.')
         print(f'{round(time.time() - start_time)} seconds.')
         return f
     return wrapper
