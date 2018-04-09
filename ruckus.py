@@ -21,8 +21,7 @@ class Ruckus:
     logon_url = 'https://wifi.cvl.com.tw/admin/login.jsp'
     dashboard_url = 'https://wifi.cvl.com.tw/admin/dashboard.jsp'
     conf_acl_url = 'https://wifi.cvl.com.tw/admin/conf_acls.jsp'
-    acls = None
-    data_sync_time = 2
+    data_sync_time = 3
 
     def __init__(self, username, password):
         self.macs = {}
@@ -34,12 +33,11 @@ class Ruckus:
         self.driver.find_element_by_css_selector('[name="username"]').send_keys(username)
         self.driver.find_element_by_css_selector('[name="password"]').send_keys(password)
         self.driver.find_element_by_css_selector('[name="ok"]').click()
-        time.sleep(3)  # wait for the authentication page to be loaded.
-        self.get_acls()
+        time.sleep(self.__class__.data_sync_time)  # wait for the authentication page to be loaded.
 
     def add_mac(self, mac, acl_list=None):
         if acl_list is None:
-            acl_list = self.__class__.acls[-1]
+            acl_list = self.get_acls()[-1]
         else:
             acl_list = acl_list
 
@@ -49,7 +47,7 @@ class Ruckus:
             self.driver.find_element_by_css_selector(f'[id="mac"]').send_keys(mac)
             self.driver.find_element_by_css_selector('[id="create-new-station"]').click()
             self.driver.find_element_by_css_selector('[id="ok-acl"]').click()
-            time.sleep(self.__class__.data_sync_time)  # wait for data syncing.
+            self.driver.refresh()
             return 'success'
         else:
             return 'failed, MAC existed'
@@ -68,14 +66,14 @@ class Ruckus:
             else:
                 pass
             self.driver.find_element_by_css_selector('[id="ok-acl"]').click()
-            time.sleep(self.__class__.data_sync_time)  # wait for data syncing.
+            self.driver.refresh()
             return 'success'
         else:
             return 'failed, MAC doesn\'t exist'
 
-    def all_mac(self):
+    def get_macs(self):
         self.driver.get(self.__class__.conf_acl_url)  # go to configuration page.
-        for acl in self.__class__.acls:  # loop through acl list.
+        for acl in self.get_acls():  # loop through acl list.
             self.driver.find_element_by_css_selector(f'[id="{acl}"]').click()  # click "EDIT" button.
             macs = self.driver.find_element_by_css_selector('#staTable').text  # get MACs.
             filtered_macs = tuple(macs.replace(' delete', '').replace('\n', ' ').lower().split(' '))  # filter out unwanted charactors.
@@ -83,34 +81,43 @@ class Ruckus:
         return self.macs
 
     def exist_mac(self, mac):
-        for k, v in self.all_mac().items():  # loop through MAC list.
+        for k, v in self.get_macs().items():  # loop through MAC list.
             if mac in v:  # if target mac in the MAC list.
                 return k  # return acl.
-        return False
+        return None
 
     def get_acls(self):
         self.driver.get(self.__class__.conf_acl_url)  # go to configuration page.
         acl_objs = self.driver.find_element_by_css_selector('table#acl.listTable > tbody').find_elements_by_css_selector('td.action > span')  # get acl lists.
-        self.__class__.acls = tuple([i.get_attribute('id') for i in acl_objs if 'edit' in i.get_attribute('id')])  # filter out unwanted charactors.
-        return self.__class__.acls
+        return tuple([i.get_attribute('id') for i in acl_objs if 'edit' in i.get_attribute('id')])  # filter out unwanted charactors.
 
     def __repr__(self):
-        pass
         #  TODO: return something.
+        return f'{self.driver.title}'
 
     def __del__(self):
         return self.driver.quit()
 
 
-if __name__ == '__main__':
+def check_time(origin_func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        f = origin_func(*args, **kwargs)
+        print(f'{round(time.time() - start_time)} seconds.')
+        return f
+    return wrapper
+
+
+@check_time
+def main():
     user = os.environ.get('RUCKUS_USER')
     pw = os.environ.get('RUCKUS_PASS')
-    mac = 'dd:dd:dd:cc:cc:cc'
+    mac = 'ff:ff:ff:ff:ff:ff'
 
-    r1 = Ruckus(user, pw)
-    print(r1.add_mac(mac))
-    print(r1.exist_mac(mac))
-    # print(r1.remove_mac(mac))
+    r = Ruckus(user, pw)
+    del r
 
-    del r1
+
+if __name__ == '__main__':
+    main()
 
