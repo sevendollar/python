@@ -32,19 +32,20 @@ class Ruckus:
         self.driver.find_element_by_css_selector('[name="ok"]').click()
         time.sleep(self.__class__.data_sync_time)  # wait for the authentication page to be loaded.
 
-    def add_mac(self, mac, acl_list=None):
-        if acl_list is None:
-            acl_list = self.get_acls()[-1]
-        else:
-            acl_list = acl_list
-
-        if not self.exist_mac(mac):
+    def add_macs(self, macs, acl_list=None):
+        # if acl_list is None:
+        #     acl_list = self.get_acls()[-1]
+        # else:
+        #     acl_list = acl_list
+        acl_list = acl_list or self.get_acls()[-1]
+        if True:
             self.driver.get(self.__class__.conf_acl_url)  # go to configuration page.
             self.driver.find_element_by_css_selector(f'[id="{acl_list}"]').click()
-            self.driver.find_element_by_css_selector(f'[id="mac"]').send_keys(mac)
-            self.driver.find_element_by_css_selector('[id="create-new-station"]').click()
+            for mac in macs:
+                self.driver.find_element_by_css_selector(f'[id="mac"]').send_keys(mac)  # where you fill out MACs.
+                self.driver.find_element_by_css_selector('[id="create-new-station"]').click()  # 'Create New' button.
             self.driver.find_element_by_css_selector('[id="ok-acl"]').click()
-            time.sleep(self.__class__.data_sync_time)
+            time.sleep(self.__class__.data_sync_time)  # wait for data to be synced.
             return True
         else:
             return False
@@ -95,23 +96,9 @@ class Ruckus:
         return self.driver.quit()
 
 
-def spend_time(origin_func):
-    def wrapper(*args, **kwargs):
-        start_time = time.time()
-        f = origin_func(*args, **kwargs)
-        print(f'{round(time.time() - start_time)} seconds.')
-        return f
-    return wrapper
-
-
-@spend_time
 def main():
     user = os.environ.get('RUCKUS_USER')
     pw = os.environ.get('RUCKUS_PASS')
-    r = Ruckus(user, pw)
-    print(r.get_macs())
-    del r
-
 
 if __name__ == '__main__':
     main()
