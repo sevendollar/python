@@ -53,7 +53,6 @@ class Ruckus:
             return False
 
     def add_macs(self, macs, acl_list=None):
-        #  todo: func add macs
         acl_list = acl_list or self.get_acls()[-1]
         macs = self.exist_macs(macs)
         added_macs = ()
@@ -114,7 +113,7 @@ class Ruckus:
                 return k  # return acl.
         return None
 
-    def exist_macs(self, macs):
+    def exist_macs(self, macs):  # de-duplicate macs
         exist_macs_ = {}
         for mac in self.clean_macs(macs):
             exist_mac_ = self.exist_mac(mac)
@@ -133,18 +132,18 @@ class Ruckus:
     def clean_macs(macs):
         macs = (type(macs) == str) and [macs] or macs  # put single MAC into list.
         return tuple([mac.lower() for mac in macs])  # lowering MACs.
-    # todo: de-duplicate macs
-    # todo: check mac legal
 
     def __repr__(self):
-        #  TODO: return something.
+        # todo: return something.
         return f'{self.driver.title}'
 
     def __del__(self):
         return self.driver.quit()
 
-    #  todo: problem when acl list is full.
+    # todo: problem when acl list is full.
 
+    # todo: check mac legal
+    
 
 def timing(origin_func):
     def wrapper(*args, **kwargs):
@@ -159,7 +158,7 @@ def timing(origin_func):
 def main():
     user = os.environ.get('RUCKUS_USER')
     pw = os.environ.get('RUCKUS_PASS')
-    mac = 'ff:ff:ff:ff:ff:ff', 'bb:bb:bb:bb:bb:bb', 'E0:AA:96:11:21:08', 'aa:aa:aa:aa:aa:aa', 'cc:cc:cc:cc:cc:cc', 'E0:AA:96:11:21:01', 'E0:AA:96:11:21:02', 'E0:AA:96:11:21:08'
+    mac = 'ff:ff:ff:ff:ff:ff', 'bb:bb:bb:bb:bb:bb', 'E0:AA:96:11:21:08', 'E0:AA:96:11:21:08','aa:aa:aa:aa:aa:aa', 'cc:cc:cc:cc:cc:cc', 'E0:AA:96:11:21:01', 'E0:AA:96:11:21:02', 'E0:AA:96:11:21:08'
     # mac = 'ff:ff:ff:ff:ff:ff', 'aa:aa:aa:aa:aa:aa', 'E0:AA:96:11:21:08'
     # mac = 'ff:ff:ff:ff:ff:ff', 'E0:AA:96:11:21:08'
     # mac = 'E0:AA:96:11:21:01', 'E0:AA:96:11:21:02'
@@ -170,3 +169,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
