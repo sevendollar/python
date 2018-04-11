@@ -40,7 +40,6 @@ class Ruckus:
             acl_list = self.get_acls()[-1]
         else:
             acl_list = acl_list
-        # acl_list = acl_list or self.get_acls()[-1]
 
         if not self.exist_mac(mac):
             self.driver.get(self.__class__.conf_acl_url)  # go to configuration page.
@@ -52,6 +51,33 @@ class Ruckus:
             return True
         else:
             return False
+
+    def add_macs(self, macs, acl_list=None):
+        #  todo: func add macs
+        acl_list = acl_list or self.get_acls()[-1]
+        macs = self.exist_macs(macs)
+        added_macs = ()
+        not_added_macs = ()
+        add_mac_condition = True
+
+        for mac, v in macs.items():
+            add_mac_condition = add_mac_condition and v
+            if v:
+                not_added_macs += mac,
+            else:
+                added_macs += mac,
+
+        if not add_mac_condition:
+            self.driver.get(self.__class__.conf_acl_url)  # go to configuration page
+            self.driver.find_element_by_css_selector(f'[id="{acl_list}"]').click()  # the last acl list
+            for mac in added_macs:
+                self.driver.find_element_by_css_selector(f'[id="mac"]').send_keys(mac)  # fill out mac
+                self.driver.find_element_by_css_selector('[id="create-new-station"]').click()  # 'create button'
+            self.driver.find_element_by_css_selector('[id="ok-acl"]').click()
+            time.sleep(self.__class__.data_sync_time)  # wait for the data to be synced.
+        else:
+            pass
+        return {'added_macs': added_macs, 'not_added_macs': not_added_macs}
 
     def remove_mac(self, mac):
         acl_list = self.exist_mac(mac)
@@ -95,8 +121,8 @@ class Ruckus:
             if exist_mac_:
                 exist_macs_.setdefault(mac, exist_mac_)
             else:
-                exist_macs_.setdefault(mac, None)
-        return exist_macs_ or None
+                exist_macs_.setdefault(mac, False)
+        return exist_macs_
 
     def get_acls(self):
         self.driver.get(self.__class__.conf_acl_url)  # go to configuration page.
@@ -107,7 +133,7 @@ class Ruckus:
     def clean_macs(macs):
         macs = (type(macs) == str) and [macs] or macs  # put single MAC into list.
         return tuple([mac.lower() for mac in macs])  # lowering MACs.
-    # todo: deduplicate mac
+    # todo: de-duplicate macs
     # todo: check mac legal
 
     def __repr__(self):
@@ -116,6 +142,8 @@ class Ruckus:
 
     def __del__(self):
         return self.driver.quit()
+
+    #  todo: problem when acl list is full.
 
 
 def timing(origin_func):
@@ -131,10 +159,12 @@ def timing(origin_func):
 def main():
     user = os.environ.get('RUCKUS_USER')
     pw = os.environ.get('RUCKUS_PASS')
-    # mac = 'ff:ff:ff:ff:ff:ff', 'bb:bb:bb:bb:bb:bb', 'E0:AA:96:11:21:08', 'aa:aa:aa:aa:aa:aa', 'cc:cc:cc:cc:cc:cc'
-    mac = 'E0:AA:96:11:21:08'
+    mac = 'ff:ff:ff:ff:ff:ff', 'bb:bb:bb:bb:bb:bb', 'E0:AA:96:11:21:08', 'aa:aa:aa:aa:aa:aa', 'cc:cc:cc:cc:cc:cc', 'E0:AA:96:11:21:01', 'E0:AA:96:11:21:02', 'E0:AA:96:11:21:08'
+    # mac = 'ff:ff:ff:ff:ff:ff', 'aa:aa:aa:aa:aa:aa', 'E0:AA:96:11:21:08'
+    # mac = 'ff:ff:ff:ff:ff:ff', 'E0:AA:96:11:21:08'
+    # mac = 'E0:AA:96:11:21:01', 'E0:AA:96:11:21:02'
     r = Ruckus(user, pw)
-    print(r.exist_macs(mac))
+    print(r.add_macs(mac))
     del r
 
 
