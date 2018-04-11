@@ -78,7 +78,7 @@ class Ruckus:
             pass
         return {'added_macs': added_macs, 'not_added_macs': not_added_macs}
 
-    def remove_mac(self, mac):
+    def _remove_mac(self, mac):
         acl_list = self.exist_mac(mac)
         if acl_list:
             self.driver.get(self.__class__.conf_acl_url)  # go to configuration page.
@@ -113,8 +113,8 @@ class Ruckus:
                 return k  # return acl.
         return None
 
-    def exist_macs(self, macs):  # de-duplicate macs
-        exist_macs_ = {}
+    def exist_macs(self, macs):
+        exist_macs_ = {}  # use dict so it supports de-duplicated macs.
         for mac in self.clean_macs(macs):
             exist_mac_ = self.exist_mac(mac)
             if exist_mac_:
@@ -130,7 +130,7 @@ class Ruckus:
 
     @staticmethod
     def clean_macs(macs):
-        macs = (type(macs) == str) and [macs] or macs  # put single MAC into list.
+        macs = (type(macs) == str) and [macs] or macs  # support single MAC.
         return tuple([mac.lower() for mac in macs])  # lowering MACs.
 
     def __repr__(self):
@@ -140,10 +140,10 @@ class Ruckus:
     def __del__(self):
         return self.driver.quit()
 
-    # todo: problem when acl list is full.
+    # todo: when acl list is full.
 
-    # todo: check mac legal
-    
+    # todo: check if received mac is legal
+
 
 def timing(origin_func):
     def wrapper(*args, **kwargs):
@@ -159,11 +159,7 @@ def main():
     user = os.environ.get('RUCKUS_USER')
     pw = os.environ.get('RUCKUS_PASS')
     mac = 'ff:ff:ff:ff:ff:ff', 'bb:bb:bb:bb:bb:bb', 'E0:AA:96:11:21:08', 'E0:AA:96:11:21:08','aa:aa:aa:aa:aa:aa', 'cc:cc:cc:cc:cc:cc', 'E0:AA:96:11:21:01', 'E0:AA:96:11:21:02', 'E0:AA:96:11:21:08'
-    # mac = 'ff:ff:ff:ff:ff:ff', 'aa:aa:aa:aa:aa:aa', 'E0:AA:96:11:21:08'
-    # mac = 'ff:ff:ff:ff:ff:ff', 'E0:AA:96:11:21:08'
-    # mac = 'E0:AA:96:11:21:01', 'E0:AA:96:11:21:02'
     r = Ruckus(user, pw)
-    print(r.add_macs(mac))
     del r
 
 

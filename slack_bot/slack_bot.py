@@ -13,7 +13,7 @@ starterbot_id = None
 
 # constants
 RTM_READ_DELAY = 1 # 1 second delay between reading from RTM
-EXAMPLE_COMMAND = "do"
+EXAMPLE_COMMAND = 'add MAC'
 MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
 
 def parse_bot_commands(slack_events):
@@ -43,28 +43,32 @@ def handle_command(command, channel):
         Executes bot command if the command is known
     """
     # Default response is help text for the user
-    default_response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
+    default_response = f'''
+    im just a baby-bot who r still learning & exploring the world, be nice to me plz...:slightly_smiling_face:\n
+    Try *{EXAMPLE_COMMAND}* or *help* for more detail.
+    '''
 
     # Finds and executes the given command, filling in response
     response = None
     # This is where you start to implement more commands!
     if command.startswith('add'):
+        slack_client.api_call(
+            "chat.postMessage",
+            channel=channel,
+            text='Working on it...:slightly_smiling_face:'
+        )
         user = os.environ.get('RUCKUS_USER')
         pw = os.environ.get('RUCKUS_PASS')
         mac = command.split(" ")[1].strip()
         r = Ruckus(user, pw)
         print(mac)
         if r.add_mac(mac):
-            response = f'successfully added {mac}...:tada:'
+            response = f'successfully added *{mac}*...:tada:'
         else:
-            response = 'failed, MAC existed...'
+            response = 'Oops, MAC existed...'
         del r
-    elif command == 'get mac':
-        user = os.environ.get('RUCKUS_USER')
-        pw = os.environ.get('RUCKUS_PASS')
-        r = Ruckus(user, pw)
-        response = f'{r.get_macs()}'
-        del r
+    elif command == 'help':
+        response = 'gotcha...there\'s not thing i can help with...:grin:'
     else:
         response = default_response
 
