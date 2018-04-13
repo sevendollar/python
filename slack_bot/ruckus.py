@@ -3,8 +3,6 @@
 import os
 import time
 from selenium import webdriver
-from bs4 import BeautifulSoup
-import re
 
 # profile = webdriver.FirefoxProfile()
 # profile.default_preferences['webdriver_assume_untrusted_issuer'] = False
@@ -156,11 +154,9 @@ def timing(origin_func):
 
 @timing
 def main():
-    user = os.environ.get('RUCKUS_USER')
+    user = os.environ.get('RUCKUS_USER') or input('ruckus username:')
     pw = os.environ.get('RUCKUS_PASS')
     mac = 'ff:ff:ff:ff:ff:ff', 'bb:bb:bb:bb:bb:bb', 'E0:AA:96:11:21:08', 'E0:AA:96:11:21:08','aa:aa:aa:aa:aa:aa', 'cc:cc:cc:cc:cc:cc', 'E0:AA:96:11:21:01', 'E0:AA:96:11:21:02', 'E0:AA:96:11:21:08'
-    r = Ruckus(user, pw)
-    del r
 
 
 if __name__ == '__main__':

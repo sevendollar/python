@@ -1,10 +1,16 @@
 #!/bin/sh/python
 
+#!/bin/sh/python
+
 from slackclient import SlackClient
-import time, re, os
+import time
+import re
+import os
 from ruckus import Ruckus
 
-SLACK_BOT_TOKEN = os.environ.get('SLACK_BOT_TOKEN')
+SLACK_BOT_TOKEN = os.environ.get('SLACK_BOT_TOKEN') or input('slack bot token: ')
+user = os.environ.get('RUCKUS_USER') or input('ruckus username: ')
+pw = os.environ.get('RUCKUS_PASS')
 
 # instantiate Slack client
 slack_client = SlackClient(SLACK_BOT_TOKEN)
@@ -50,6 +56,7 @@ def handle_command(command, channel):
 
     # Finds and executes the given command, filling in response
     response = None
+    # todo: parse phase from user.
     # This is where you start to implement more commands!
     if command.startswith('add'):
         slack_client.api_call(
@@ -57,8 +64,6 @@ def handle_command(command, channel):
             channel=channel,
             text='Working on it...:slightly_smiling_face:'
         )
-        user = os.environ.get('RUCKUS_USER')
-        pw = os.environ.get('RUCKUS_PASS')
         mac = command.split(" ")[1].strip()
         r = Ruckus(user, pw)
         print(mac)
@@ -69,6 +74,7 @@ def handle_command(command, channel):
         del r
     elif command == 'help':
         response = 'gotcha...there\'s not thing i can help with...:grin:'
+    #  todo: filter bad words.
     else:
         response = default_response
 
@@ -78,6 +84,7 @@ def handle_command(command, channel):
         channel=channel,
         text=response or default_response
     )
+
 
 if __name__ == "__main__":
     if slack_client.rtm_connect(with_team_state=False):
@@ -91,3 +98,4 @@ if __name__ == "__main__":
             time.sleep(RTM_READ_DELAY)
     else:
         print("Connection failed. Exception traceback printed above.")
+
