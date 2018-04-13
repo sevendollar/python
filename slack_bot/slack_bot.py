@@ -1,16 +1,15 @@
 #!/bin/sh/python
 
-#!/bin/sh/python
-
 from slackclient import SlackClient
 import time
 import re
 import os
 from ruckus import Ruckus
+from getpass import getpass
 
 SLACK_BOT_TOKEN = os.environ.get('SLACK_BOT_TOKEN') or input('slack bot token: ')
-user = os.environ.get('RUCKUS_USER') or input('ruckus username: ')
-pw = os.environ.get('RUCKUS_PASS')
+RUCKUS_USER = os.environ.get('RUCKUS_USER') or input('ruckus username: ')
+RUCKUS_PASS = os.environ.get('RUCKUS_PASS') or getpass('ruckus password: ')
 
 # instantiate Slack client
 slack_client = SlackClient(SLACK_BOT_TOKEN)
@@ -65,7 +64,7 @@ def handle_command(command, channel):
             text='Working on it...:slightly_smiling_face:'
         )
         mac = command.split(" ")[1].strip()
-        r = Ruckus(user, pw)
+        r = Ruckus(RUCKUS_USER, RUCKUS_PASS)
         print(mac)
         if r.add_mac(mac):
             response = f'successfully added *{mac}*...:tada:'

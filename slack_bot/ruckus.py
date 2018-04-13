@@ -1,8 +1,9 @@
-#!/usr/bin/python
+#!/bin/sh/python
 
 import os
 import time
 from selenium import webdriver
+from getpass import getpass
 
 # profile = webdriver.FirefoxProfile()
 # profile.default_preferences['webdriver_assume_untrusted_issuer'] = False
@@ -154,8 +155,8 @@ def timing(origin_func):
 
 @timing
 def main():
-    user = os.environ.get('RUCKUS_USER') or input('ruckus username:')
-    pw = os.environ.get('RUCKUS_PASS')
+    RUCKUS_USER = os.environ.get('RUCKUS_USER') or input('ruckus username: ')
+    RUCKUS_PASS = os.environ.get('RUCKUS_PASS') or getpass('ruckus passowrd: ')
     mac = 'ff:ff:ff:ff:ff:ff', 'bb:bb:bb:bb:bb:bb', 'E0:AA:96:11:21:08', 'E0:AA:96:11:21:08','aa:aa:aa:aa:aa:aa', 'cc:cc:cc:cc:cc:cc', 'E0:AA:96:11:21:01', 'E0:AA:96:11:21:02', 'E0:AA:96:11:21:08'
 
 
