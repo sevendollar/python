@@ -11,15 +11,14 @@ SLACK_BOT_TOKEN = os.environ.get('SLACK_BOT_TOKEN') or input('slack bot token: '
 RUCKUS_USER = os.environ.get('RUCKUS_USER') or input('ruckus username: ')
 RUCKUS_PASS = os.environ.get('RUCKUS_PASS') or getpass('ruckus password: ')
 
-# instantiate Slack client
-slack_client = SlackClient(SLACK_BOT_TOKEN)
-# starterbot's user ID in Slack: value is assigned after the bot starts up
-starterbot_id = None
+
+slack_client = SlackClient(SLACK_BOT_TOKEN)  # instantiate Slack client
+starterbot_id = None  # starterbot's user ID in Slack: value is assigned after the bot starts up
 
 # constants
-RTM_READ_DELAY = 1 # 1 second delay between reading from RTM
+RTM_READ_DELAY = 1  # 1 second delay between reading from RTM
 EXAMPLE_COMMAND = 'add MAC'
-MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
+MENTION_REGEX = "^<@(|[WU].+?)>((.|\s)*)"
 
 def parse_bot_commands(slack_events):
     """
@@ -52,24 +51,21 @@ def handle_command(command, channel):
     im just a baby-bot who r still learning & exploring the world, be nice to me plz...:slightly_smiling_face:\n
     Try *{EXAMPLE_COMMAND}* or *help* for more detail.
     '''
+    response = None  # Finds and executes the given command, filling in response
 
-    # Finds and executes the given command, filling in response
-    response = None
-    # todo: parse phase from user.
-    # This is where you start to implement more commands!
-    if command.startswith('add'):
+    if command.startswith('add mac'):
         slack_client.api_call(
             "chat.postMessage",
             channel=channel,
             text='Working on it...:slightly_smiling_face:'
         )
-        mac = command.split(" ")[1].strip()
+        print(parse_user_words(command))
+        mac = parse_user_words(command).get('mac')
         r = Ruckus(RUCKUS_USER, RUCKUS_PASS)
-        print(mac)
         if r.add_mac(mac):
             response = f'successfully added *{mac}*...:tada:'
         else:
-            response = 'Oops, MAC existed...'
+            response = 'Oops, MAC existed...:cry:'
         del r
     elif command == 'help':
         response = 'gotcha...there\'s not thing i can help with...:grin:'
@@ -83,6 +79,22 @@ def handle_command(command, channel):
         channel=channel,
         text=response or default_response
     )
+
+
+def parse_user_words(words):  # TODO: parse phase from user.
+    team_name = words.replace('\n', ' ').split(' ')[2]
+    team_user = words.replace('\n', ' ').split(' ')[3]
+    customer_name = words.replace('\n', ' ').split(' ')[4]
+    customer_id = words.replace('\n', ' ').split(' ')[5]
+    mac = words.replace('\n', ' ').split(' ')[6]
+    new_words = {
+        'team_name': team_name,
+        'team_user': team_user,
+        'customer_name': customer_name,
+        'customer_id': customer_id,
+        'mac': mac
+    }
+    return new_words or None
 
 
 if __name__ == "__main__":
