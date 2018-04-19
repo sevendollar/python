@@ -31,15 +31,13 @@ print(result)
 regex = ['mac', 'id', 'chinese', 'bad_word']
 pattern = ['([a-f0-9]{2}[:-]){5}[a-f0-9]{2}', '[a-z][0-9]{9}', '[\\u4e00-\\u9fff]+', f'(fuck|shit|fxxk|fxk|ass)']
 
-
-def regex_matches(pattern, text, regex):
+def regex_match(pattern, text, regex):
     return {regex: tuple(x.group() for x in re.finditer(pattern, text, re.IGNORECASE)) or None}
 
+def regex_matches(pattern, text, regex):
+    result = {}
+    for m in map(regex_match, pattern, text, regex):
+        result = {**result, **m}
+    return result
 
-mapped_items = map(regex_matches, pattern, [text] * len(regex), regex)
-result = {}
-for m in mapped_items:
-    result = {**result, **m}
-
-print(result)
-
+print(regex_matches(pattern, [text] * len(regex), regex))
