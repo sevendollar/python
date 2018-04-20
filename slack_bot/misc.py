@@ -9,19 +9,24 @@ REGEX_ITEMS = ['macs', 'customer_id', 'chinese_characters', 'bad_words']
 REGEX_PATTERNS = [r'([\w\d]+[:-]){5}[\w\d]+', r'[a-z][0-9]{9}', r'[\u4e00-\u9fff]+', r'(fuck|shit|fxxk|fxk|ass)']
 
 
+#  TODO: check if id is legal.
+def is_id_legal(id):
+    pass
+
+
 def is_mac_legal(mac):
     mac_regex = re.compile(r'([a-f0-9]{2}[:-]){5}[a-f0-9]{2}', re.IGNORECASE)
     return mac_regex.match(mac) and True or False
 
 
-def __regex_match(pattern, text_, regex):
+def __regex_match(regex, pattern, text_):
     return {regex: tuple(x.group() for x in re.finditer(pattern, text_, re.IGNORECASE)) or None}
 
 
-def result(pattern, text_, regex):
+def result(regex, pattern, text_):
     text_ = [text_] * len(regex)
     r = {}
-    for m in map(__regex_match, pattern, text_, regex):
+    for m in map(__regex_match,regex , pattern, text_):
         r = {**r, **m}
 
     if len(r.get('chinese_characters') or '') == 3:
@@ -66,8 +71,7 @@ def is_data_legal_v2(result):
 
 
 if __name__ == '__main__':
-    rs = result(REGEX_PATTERNS, text, REGEX_ITEMS)
+    rs = result(REGEX_ITEMS, REGEX_PATTERNS, text)
     print(f'User inputs: {rs}')
     print(f'Is inputs right? {is_data_legal_v2(rs)}')
-
 
