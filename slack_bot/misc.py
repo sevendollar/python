@@ -2,70 +2,72 @@
 
 import re
 
+text = '''
+'''
 
-def is_id_legal(id):
-    #  TODO: check if id is legal.
-    pass
+REGEX_ITEMS = ['macs', 'customer_id', 'chinese_characters', 'bad_words']
+REGEX_PATTERNS = [r'([\w\d]+[:-]){5}[\w\d]+', r'[a-z][0-9]{9}', r'[\u4e00-\u9fff]+', r'(fuck|shit|fxxk|fxk|ass)']
 
 
 def is_mac_legal(mac):
-    mac_regex = re.compile('([a-f0-9]{2}[:-]){5}[a-f0-9]{2}', re.IGNORECASE)
+    mac_regex = re.compile(r'([a-f0-9]{2}[:-]){5}[a-f0-9]{2}', re.IGNORECASE)
     return mac_regex.match(mac) and True or False
 
 
-def parsed_data(words):
-    # MAC_REGEX = r'([a-zA-Z0-9]{2}[:-]){5}[a-zA-Z0-9]{2}'
-    MAC_REGEX = r'([\w\d]+[:-]){5}[\w\d]+'
-    ID_REGEX = r'[a-zA-Z][0-9]{9}'
-    CHINESE_CHARACTER_REGEX = r'[\u4e00-\u9fff]+'
-    BAD_WORDS_REGEX = f'(fuck|shit|fxxk|fxk|ass)'
-
-    mac_matches = re.finditer(MAC_REGEX, words, re.IGNORECASE)
-    id_matches = re.finditer(ID_REGEX, words)
-    chinese_matches = re.finditer(CHINESE_CHARACTER_REGEX, words)
-    bad_words_matches = re.finditer(BAD_WORDS_REGEX, words, re.IGNORECASE)
-    chinese_characters = tuple(c[0] for c in chinese_matches)
-
-    if len(chinese_characters) == 3:
-        team_name, team_user, customer_name = chinese_characters[0], chinese_characters[1], chinese_characters[2]
-    else:
-        team_name, team_user, customer_name = None, None, None
-
-    new_words = {
-        'macs': tuple(m.group() for m in mac_matches) or None,
-        'chinese_characters': chinese_characters or None,
-        'team_name': team_name,
-        'team_user': team_user,
-        'customer_name': customer_name,
-        'customer_id': tuple(i.group() for i in id_matches) or None,
-        'bad_words': tuple(b.group() for b in bad_words_matches) or None
-    }
-    return new_words
+def __regex_match(pattern, text_, regex):
+    return {regex: tuple(x.group() for x in re.finditer(pattern, text_, re.IGNORECASE)) or None}
 
 
-def wrong_data(data):
+def result(pattern, text_, regex):
+    text_ = [text_] * len(regex)
+    r = {}
+    for m in map(__regex_match, pattern, text_, regex):
+        r = {**r, **m}
+
+    if len(r.get('chinese_characters') or '') == 3:
+        r['team_name'] = r.get('chinese_characters')[0]
+        r['team_user'] = r.get('chinese_characters')[1]
+        r['customer_name'] = r.get('chinese_characters')[2]
+
+    for mac in r.pop('macs') or '':  # check mac legality.
+        if is_mac_legal(mac):
+            # when is legal, put it back in the dict.
+            r['macs'] = r.get('macs', tuple()) + (mac.lower(),)
+        else:
+            # when illegal, put it in the dict and name it "fake_mac".
+            r['fake_macs'] = r.get('fake_macs', tuple()) + (mac.lower(),)
+    return r
+
+
+def is_data_legal(result):
+    return (
+        (not result.get('fake_macs'))
+        and
+        result.get('macs')
+        and
+        (len(result.get('chinese_characters')) == 3)
+        and
+        result.get('customer_id')
+    ) and True or False
+
+
+def is_data_legal_v2(result):
     check_point = ()
-    if not (data.get('team_name', None) and data.get('team_user', None and data.get('customer_name', None))):
+    if len(result.get('chinese_characters') or '') != 3:
         check_point += 'name',
-    if not data.get('customer_id', None):
+    if not result.get('customer_id'):
         check_point += 'id',
-    if data.get('bad_words', None):
-        check_point += 'language',
-    if data.get('macs', None):
-        for mac in data.get('macs', None):
-            if not is_mac_legal(mac):
-                check_point += mac,
-    else:
-        check_point += 'macs',
+    if not result.get('macs'):
+        check_point += 'mac',
+    if result.get('fake_macs'):
+        check_point += result.get('fake_macs')
+    return (not check_point) and (True, None) or (False, check_point)
+    # return check_point or True
 
-    return check_point or False
-
-
-text_ = '''
-'''
 
 if __name__ == '__main__':
-    if wrong_data(parsed_data(text_)) is False:
-        print('data ok')
-    else:
-        print('wrong data', str(wrong_data(parsed_data(text_))))
+    rs = result(REGEX_PATTERNS, text, REGEX_ITEMS)
+    print(f'User inputs: {rs}')
+    print(f'Is inputs right? {is_data_legal_v2(rs)}')
+
+
