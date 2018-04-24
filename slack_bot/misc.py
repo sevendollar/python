@@ -1,9 +1,8 @@
 #!/bin/sh/python
 
 import re
+import json
 
-text = '''
-'''
 
 REGEX_ITEMS = ['macs', 'customer_id', 'chinese_characters', 'bad_words']
 REGEX_PATTERNS = [r'([\w\d]+[:-]){5}[\w\d]+', r'[a-z][0-9]{9}', r'[\u4e00-\u9fff]+', r'(fuck|shit|fxxk|fxk|ass)']
@@ -20,43 +19,48 @@ def is_mac_legal(mac):
 
 
 def __regex_match(regex, pattern, text_):
+    text_ = text_ or ''  # if value is None covert to '' so that re.finditer won't go wrong.
     return {regex: tuple(x.group() for x in re.finditer(pattern, text_, re.IGNORECASE)) or None}
 
 
-def result(regex, pattern, text_):
+def parser(text_=None, regex=REGEX_ITEMS, pattern=REGEX_PATTERNS):
+    text_ = (type(text_) is tuple or type(text_) is list) and ' '.join(text_) or text_  # covert from tuple or list to str
+    text_ = type(text_) is dict and json.dumps(text_) or text_  # covert from dict to str
     text_ = [text_] * len(regex)
-    r = {}
-    for m in map(__regex_match,regex , pattern, text_):
-        r = {**r, **m}
+    result = {}
 
-    if len(r.get('chinese_characters') or '') == 3:
-        r['team_name'] = r.get('chinese_characters')[0]
-        r['team_user'] = r.get('chinese_characters')[1]
-        r['customer_name'] = r.get('chinese_characters')[2]
+    for m in map(__regex_match, regex, pattern, text_):
+        result = {**result, **m}
 
-    for mac in r.pop('macs') or '':  # check mac legality.
+    if len(result.get('chinese_characters') or '') == 3:
+        result['team_name'] = result.get('chinese_characters')[0]
+        result['team_user'] = result.get('chinese_characters')[1]
+        result['customer_name'] = result.get('chinese_characters')[2]
+
+    for mac in result.pop('macs') or '':  # check mac legality.
         if is_mac_legal(mac):
             # when is legal, put it back in the dict.
-            r['macs'] = r.get('macs', tuple()) + (mac.lower(),)
+            result['macs'] = result.get('macs', tuple()) + (mac.lower(),)
         else:
             # when illegal, put it in the dict and name it "fake_mac".
-            r['fake_macs'] = r.get('fake_macs', tuple()) + (mac.lower(),)
-    return r
+            result['fake_macs'] = result.get('fake_macs', tuple()) + (mac.lower(),)
+
+    return result
 
 
-def is_data_legal(result):
-    return (
-        (not result.get('fake_macs'))
-        and
-        result.get('macs')
-        and
-        (len(result.get('chinese_characters')) == 3)
-        and
-        result.get('customer_id')
-    ) and True or False
+# def is_data_legal(result):
+#     return (
+#         (not result.get('fake_macs'))
+#         and
+#         result.get('macs')
+#         and
+#         (len(result.get('chinese_characters')) == 3)
+#         and
+#         result.get('customer_id')
+#     ) and True or False
 
 
-def is_data_legal_v2(result):
+def is_add_mac_legal(result):
     check_point = ()
     if len(result.get('chinese_characters') or '') != 3:
         check_point += 'name',
@@ -71,7 +75,5 @@ def is_data_legal_v2(result):
 
 
 if __name__ == '__main__':
-    rs = result(REGEX_ITEMS, REGEX_PATTERNS, text)
-    print(f'User inputs: {rs}')
-    print(f'Is inputs right? {is_data_legal_v2(rs)}')
+    pass
 
