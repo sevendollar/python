@@ -3,9 +3,19 @@
 import re
 import json
 
+REGEXs = {
+    'macs': r'([a-f0-9]+[:-]){5}[a-f0-9]{0,2}',
+    # 'macs': r'([\w\d]+[:-]){5}[\w\d]+',
+    'customer_id': r'[a-z][0-9]{9}',
+    'chinese_characters': r'[\u4e00-\u9fff]+',
+    'bad_words': r'(fuck|shit|fxxk|fxk|ass)'
+}
 
-REGEX_ITEMS = ['macs', 'customer_id', 'chinese_characters', 'bad_words']
-REGEX_PATTERNS = [r'([\w\d]+[:-]){5}[\w\d]+', r'[a-z][0-9]{9}', r'[\u4e00-\u9fff]+', r'(fuck|shit|fxxk|fxk|ass)']
+REGEX_ITEMS = [x for x in REGEXs.keys()]
+REGEX_PATTERNS = [y for y in REGEXs.values()]
+
+# REGEX_ITEMS = ['macs', 'customer_id', 'chinese_characters', 'bad_words']
+# REGEX_PATTERNS = [r'([\w\d]+[:-]){5}[\w\d]+', r'[a-z][0-9]{9}', r'[\u4e00-\u9fff]+', r'(fuck|shit|fxxk|fxk|ass)']
 
 
 #  TODO: check if id is legal.
