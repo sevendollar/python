@@ -4,7 +4,7 @@ import re
 import json
 
 REGEXs = {
-    'macs': r'([a-f0-9]+[:-]){5}[a-f0-9]{0,2}',
+    'macs': r'([a-z0-9]+[:-]){5}[a-z0-9]{0,2}',
     # 'macs': r'([\w\d]+[:-]){5}[\w\d]+',
     'customer_id': r'[a-z][0-9]{9}',
     'chinese_characters': r'[\u4e00-\u9fff]+',
@@ -34,7 +34,7 @@ def __regex_match(regex, pattern, text_):
 
 
 def parser(text_=None, regex=REGEX_ITEMS, pattern=REGEX_PATTERNS):
-    text_ = (type(text_) is tuple or type(text_) is list) and ' '.join(text_) or text_  # covert from tuple or list to str
+    text_ = type(text_) in (tuple, list, set) and ' '.join(text_) or text_  # covert from tuple or list or set to str
     text_ = type(text_) is dict and json.dumps(text_) or text_  # covert from dict to str
     text_ = [text_] * len(regex)
     result = {}
