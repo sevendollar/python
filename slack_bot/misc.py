@@ -5,7 +5,6 @@ import json
 
 REGEXs = {
     'macs': r'([a-z0-9]+[:-]){5}[a-z0-9]{0,2}',
-    # 'macs': r'([\w\d]+[:-]){5}[\w\d]+',
     'customer_id': r'[a-z][0-9]{9}',
     'chinese_characters': r'[\u4e00-\u9fff]+',
     'bad_words': r'(fuck|shit|fxxk|fxk|ass)'
@@ -13,9 +12,6 @@ REGEXs = {
 
 REGEX_ITEMS = [x for x in REGEXs.keys()]
 REGEX_PATTERNS = [y for y in REGEXs.values()]
-
-# REGEX_ITEMS = ['macs', 'customer_id', 'chinese_characters', 'bad_words']
-# REGEX_PATTERNS = [r'([\w\d]+[:-]){5}[\w\d]+', r'[a-z][0-9]{9}', r'[\u4e00-\u9fff]+', r'(fuck|shit|fxxk|fxk|ass)']
 
 
 #  TODO: check if id is legal.
@@ -34,18 +30,7 @@ def __regex_match(regex, pattern, text_):
 
 
 def parser(text_=None, regex=REGEX_ITEMS, pattern=REGEX_PATTERNS):
-    # for map() version
-    # text_ = [
-    #            {
-    #                tuple: lambda x: ' '.join(str(i) for i in x),
-    #                set: lambda x: ' '.join(str(i) for i in x),
-    #                list: lambda x: ' '.join(str(i) for i in x),
-    #                dict: lambda x: json.dumps(x),
-    #                str: lambda x: x
-    #            }.get(type(text_), lambda x: str(text_))(text_)
-    #        ] * len(regex)
-
-    # for iteral version
+    # convert user inputs.
     text_ = {
         tuple: lambda x: ' '.join(str(i) for i in x),
         set: lambda x: ' '.join(str(i) for i in x),
@@ -53,11 +38,7 @@ def parser(text_=None, regex=REGEX_ITEMS, pattern=REGEX_PATTERNS):
         dict: lambda x: json.dumps(x),
         str: lambda x: x
     }.get(type(text_), lambda x: str(text_))(text_)
-
     result = {}  # return dict
-
-    # for m in map(__regex_match, regex, pattern, text_):
-    #     result = {**result, **m}
 
     # calling regular expression function and build up the return-value.
     for k, v in dict(zip(regex, pattern)).items():
@@ -68,7 +49,8 @@ def parser(text_=None, regex=REGEX_ITEMS, pattern=REGEX_PATTERNS):
         for i, k in enumerate(('team_name', 'team_user', 'customer_name')):
             result[k] = result.get('chinese_characters')[i]
 
-    for mac in result.pop('macs') or '':  # check mac legality.
+    # check mac legality.
+    for mac in result.pop('macs') or '':
         if is_mac_legal(mac):
             # when is legal, put it back in the dict.
             result['macs'] = result.get('macs', tuple()) + (mac.lower(),)
@@ -83,24 +65,13 @@ def parser(text_=None, regex=REGEX_ITEMS, pattern=REGEX_PATTERNS):
     return result
 
 
+# deduplicate iterable, obvious.
 def deduplicate(x):
     r = []
     for i in x:
         if i not in r:
             r.append(i)
     return tuple(r)
-
-
-# def is_data_legal(result):
-#     return (
-#         (not result.get('fake_macs'))
-#         and
-#         result.get('macs')
-#         and
-#         (len(result.get('chinese_characters')) == 3)
-#         and
-#         result.get('customer_id')
-#     ) and True or False
 
 
 def is_add_mac_legal(result):
@@ -114,7 +85,6 @@ def is_add_mac_legal(result):
     if result.get('fake_macs'):
         check_point += result.get('fake_macs')
     return (not check_point) and (True, None) or (False, check_point)
-    # return check_point or True
 
 
 if __name__ == '__main__':
