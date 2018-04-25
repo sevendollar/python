@@ -34,9 +34,18 @@ def __regex_match(regex, pattern, text_):
 
 
 def parser(text_=None, regex=REGEX_ITEMS, pattern=REGEX_PATTERNS):
-    text_ = type(text_) in (tuple, list, set) and ' '.join(text_) or text_  # covert from tuple or list or set to str
-    text_ = type(text_) is dict and json.dumps(text_) or text_  # covert from dict to str
-    text_ = [text_] * len(regex)
+    text_ = [
+               {
+                   tuple: lambda x: ' '.join(str(i) for i in x),
+                   set: lambda x: ' '.join(str(i) for i in x),
+                   list: lambda x: ' '.join(str(i) for i in x),
+                   dict: lambda x: json.dumps(x),
+                   str: lambda x: x
+               }.get(type(text_), lambda x: str(text_))(text_)
+           ] * len(regex)
+    # text_ = type(text_) in (tuple, list, set) and ' '.join(text_) or text_  # covert from tuple or list or set to str
+    # text_ = type(text_) is dict and json.dumps(text_) or text_  # covert from dict to str
+    # text_ = [text_] * len(regex)
     result = {}
 
     for m in map(__regex_match, regex, pattern, text_):
@@ -56,6 +65,7 @@ def parser(text_=None, regex=REGEX_ITEMS, pattern=REGEX_PATTERNS):
             result['fake_macs'] = result.get('fake_macs', tuple()) + (mac.lower(),)
 
     return result
+
 
 
 # def is_data_legal(result):
@@ -86,4 +96,3 @@ def is_add_mac_legal(result):
 
 if __name__ == '__main__':
     pass
-
