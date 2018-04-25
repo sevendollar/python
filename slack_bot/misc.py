@@ -64,8 +64,19 @@ def parser(text_=None, regex=REGEX_ITEMS, pattern=REGEX_PATTERNS):
             # when illegal, put it in the dict and name it "fake_mac".
             result['fake_macs'] = result.get('fake_macs', tuple()) + (mac.lower(),)
 
+    # deduplicat macs
+    result['macs'] = deduplicate(result.get('macs'))
+    result['fake_macs'] = deduplicate(result.get('fake_macs'))
+
     return result
 
+
+def deduplicate(x):
+    r = []
+    for i in x:
+        if i not in r:
+            r.append(i)
+    return tuple(r)
 
 
 # def is_data_legal(result):
@@ -96,3 +107,5 @@ def is_add_mac_legal(result):
 
 if __name__ == '__main__':
     pass
+
+
