@@ -67,6 +67,12 @@ def parser(text_=None, regex=REGEX_ITEMS, pattern=REGEX_PATTERNS):
     if len(result.get('chinese_characters') or '') == 3:
         for i, k in enumerate(('team_name', 'team_user', 'customer_name')):
             result[k] = result.get('chinese_characters')[i]
+<<<<<<< HEAD
+=======
+        # result['team_name'] = result.get('chinese_characters')[0]
+        # result['team_user'] = result.get('chinese_characters')[1]
+        # result['customer_name'] = result.get('chinese_characters')[2]
+>>>>>>> 0478985baae145fdbab5aa2c87b20f95d957838b
 
     for mac in result.pop('macs') or '':  # check mac legality.
         if is_mac_legal(mac):
