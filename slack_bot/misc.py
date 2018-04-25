@@ -34,22 +34,33 @@ def __regex_match(regex, pattern, text_):
 
 
 def parser(text_=None, regex=REGEX_ITEMS, pattern=REGEX_PATTERNS):
-    text_ = [
-               {
-                   tuple: lambda x: ' '.join(str(i) for i in x),
-                   set: lambda x: ' '.join(str(i) for i in x),
-                   list: lambda x: ' '.join(str(i) for i in x),
-                   dict: lambda x: json.dumps(x),
-                   str: lambda x: x
-               }.get(type(text_), lambda x: str(text_))(text_)
-           ] * len(regex)
-    # text_ = type(text_) in (tuple, list, set) and ' '.join(text_) or text_  # covert from tuple or list or set to str
-    # text_ = type(text_) is dict and json.dumps(text_) or text_  # covert from dict to str
-    # text_ = [text_] * len(regex)
-    result = {}
+    # for map() version
+    # text_ = [
+    #            {
+    #                tuple: lambda x: ' '.join(str(i) for i in x),
+    #                set: lambda x: ' '.join(str(i) for i in x),
+    #                list: lambda x: ' '.join(str(i) for i in x),
+    #                dict: lambda x: json.dumps(x),
+    #                str: lambda x: x
+    #            }.get(type(text_), lambda x: str(text_))(text_)
+    #        ] * len(regex)
 
-    for m in map(__regex_match, regex, pattern, text_):
-        result = {**result, **m}
+    # for iteral version
+    text_ = {
+        tuple: lambda x: ' '.join(str(i) for i in x),
+        set: lambda x: ' '.join(str(i) for i in x),
+        list: lambda x: ' '.join(str(i) for i in x),
+        dict: lambda x: json.dumps(x),
+        str: lambda x: x
+    }.get(type(text_), lambda x: str(text_))(text_)
+
+    result = {}  # return dict
+
+    # for m in map(__regex_match, regex, pattern, text_):
+    #     result = {**result, **m}
+
+    for k, v in dict(zip(regex, pattern)).items():
+        result = {**result, **__regex_match(k, v, text_)}
 
     if len(result.get('chinese_characters') or '') == 3:
         result['team_name'] = result.get('chinese_characters')[0]
@@ -64,7 +75,7 @@ def parser(text_=None, regex=REGEX_ITEMS, pattern=REGEX_PATTERNS):
             # when illegal, put it in the dict and name it "fake_mac".
             result['fake_macs'] = result.get('fake_macs', tuple()) + (mac.lower(),)
 
-    # deduplicat macs
+    # deduplicate macs
     result['macs'] = deduplicate(result.get('macs'))
     result['fake_macs'] = deduplicate(result.get('fake_macs'))
 
