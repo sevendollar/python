@@ -59,13 +59,17 @@ def parser(text_=None, regex=REGEX_ITEMS, pattern=REGEX_PATTERNS):
     # for m in map(__regex_match, regex, pattern, text_):
     #     result = {**result, **m}
 
+    # calling regular expression function and build up the return-value.
     for k, v in dict(zip(regex, pattern)).items():
         result = {**result, **__regex_match(k, v, text_)}
 
+    # split the 'chinese_characters' values into meaningful named items.
     if len(result.get('chinese_characters') or '') == 3:
-        result['team_name'] = result.get('chinese_characters')[0]
-        result['team_user'] = result.get('chinese_characters')[1]
-        result['customer_name'] = result.get('chinese_characters')[2]
+        for i, k in enumerate(('team_name', 'team_user', 'customer_name')):
+            result[k] = result.get('chinese_characters')[i]
+        # result['team_name'] = result.get('chinese_characters')[0]
+        # result['team_user'] = result.get('chinese_characters')[1]
+        # result['customer_name'] = result.get('chinese_characters')[2]
 
     for mac in result.pop('macs') or '':  # check mac legality.
         if is_mac_legal(mac):
