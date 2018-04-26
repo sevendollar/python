@@ -24,6 +24,32 @@ def parse_bot_commands(slack_events):
     """
         Parses a list of events coming from the Slack RTM API to find bot commands.
         If a bot command is found, this function returns a tuple of command and channel.
+#!/bin/sh/python
+
+from slackclient import SlackClient
+import time
+import re
+import os
+from ruckus import Ruckus
+from getpass import getpass
+
+SLACK_BOT_TOKEN = os.environ.get('SLACK_BOT_TOKEN') or input('slack bot token: ')
+RUCKUS_USER = os.environ.get('RUCKUS_USER') or input('ruckus username: ')
+RUCKUS_PASS = os.environ.get('RUCKUS_PASS') or getpass('ruckus password: ')
+
+
+slack_client = SlackClient(SLACK_BOT_TOKEN)  # instantiate Slack client
+starterbot_id = None  # starterbot's user ID in Slack: value is assigned after the bot starts up
+
+# constants
+RTM_READ_DELAY = 1  # 1 second delay between reading from RTM
+EXAMPLE_COMMAND = 'add MAC'
+MENTION_REGEX = "^<@(|[WU].+?)>((.|\s)*)"
+
+def parse_bot_commands(slack_events):
+    """
+        Parses a list of events coming from the Slack RTM API to find bot commands.
+        If a bot command is found, this function returns a tuple of command and channel.
         If its not found, then this function returns None, None.
     """
     for event in slack_events:
@@ -46,6 +72,10 @@ def handle_command(command, channel):
     """
         Executes bot command if the command is known
     """
+    # TODO: do something when got bad words.
+
+    # TODO: count how many MACs one have related to.
+
     # Default response is help text for the user
     default_response = f'''
     im just a baby-bot who r still learning & exploring the world, be nice to me plz...:slightly_smiling_face:\n
@@ -69,7 +99,6 @@ def handle_command(command, channel):
         del r
     elif command == 'help':
         response = 'gotcha...there\'s not thing i can help with...:grin:'
-    #  todo: filter bad words.
     else:
         response = default_response
 
@@ -81,7 +110,7 @@ def handle_command(command, channel):
     )
 
 
-def parse_user_words(words):  # TODO: parse phase from user.
+def parse_user_words(words):
     team_name = words.replace('\n', ' ').split(' ')[2]
     team_user = words.replace('\n', ' ').split(' ')[3]
     customer_name = words.replace('\n', ' ').split(' ')[4]
@@ -109,4 +138,3 @@ if __name__ == "__main__":
             time.sleep(RTM_READ_DELAY)
     else:
         print("Connection failed. Exception traceback printed above.")
-
