@@ -1,4 +1,4 @@
-#!/bin/sh/python
+#!/usr/local/bin/python3
 
 import os
 import time
