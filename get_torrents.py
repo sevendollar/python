@@ -72,13 +72,11 @@ class Crawler:
 
 url = 'https://wifi.cvl.com.tw/admin/login.jsp'
 RUCKUS_USER = (
-    os.environ.get('RUCKUS_PASS')
-    or
+    os.environ.get('RUCKUS_USER') or
     Template(f'$ruckus_user').substitute(ruckus_user=input('Ruckus User: '))
 )
 RUCKUS_PASS = (
-        os.environ.get('RUCKUS_PASS')
-        or
+        os.environ.get('RUCKUS_PASS') or
         Template(f'$ruckus_pass').substitute(ruckus_pass=getpass('Ruckus Password: '))
 )
 ff = Crawler(url, 'chrome')
@@ -91,9 +89,9 @@ with ff as driver:
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "password"))).send_keys(RUCKUS_PASS)
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.NAME, "ok"))).click()
 
-    # WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'company')))
-    # num_of_clients = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'num-client')))
-    num_of_clients = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'num-client')))
+    WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'company')))
+    # num_of_clients = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'num-client')))
+    num_of_clients = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'num-client')))
     uptime = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'sysuptime')))
     print(uptime.text)
     print(num_of_clients.text)
