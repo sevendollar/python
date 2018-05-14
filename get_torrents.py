@@ -14,14 +14,15 @@ class Crawler:
         self.browser = browser
         while True:
             # use the pre-defined value or let the user to input it from the console.
-            user_defined_browser = (
-               self.browser
-               or
+            self.user_defined_browser = (
+               self.browser or
                input('preferred browser?(default:chrome)\n(press enter to go for the default...) ')
             )
 
             # go for chrome browser which is the default.
-            if user_defined_browser in ('chrome', ''):
+            if self.user_defined_browser in ('chrome', ''):
+                # set the webdriver executable.
+                self.executable = (lambda: 'chromedriver' if os.sys.platform == 'linux' else 'chromedriver.exe')()
                 self.options = webdriver.ChromeOptions()
                 self.options.add_argument('--headless')
                 self.options.add_argument('--allow-running-insecure-content')
@@ -32,18 +33,20 @@ class Crawler:
                 self.options.add_argument('--reduce-security-for-testing')
                 # self.options.add_argument('--sync-allow-insecure-xmpp-connection')
 
-                capabilities = webdriver.DesiredCapabilities.CHROME.copy()
-                capabilities['acceptSslCerts'] = True
-                capabilities['acceptInsecureCerts'] = True
+                self.capabilities = webdriver.DesiredCapabilities.CHROME.copy()
+                self.capabilities['acceptSslCerts'] = True
+                self.capabilities['acceptInsecureCerts'] = True
 
                 self.driver = webdriver.Chrome(
                     chrome_options=self.options,
-                    executable_path=os.path.join(os.path.abspath('.'), 'chromedriver'),
-                    desired_capabilities=capabilities,
+                    executable_path=os.path.join(os.path.abspath('.'), self.executable),
+                    desired_capabilities=self.capabilities,
                 )
                 break
             # or go for firefox browser.
-            elif user_defined_browser == 'firefox':
+            elif self.user_defined_browser == 'firefox':
+                # set the webdriver executable.
+                self.executable = (lambda: 'geckodriver' if os.sys.platform == 'linux' else 'geckodriver.exe')()
                 self.options = webdriver.FirefoxOptions()
                 self.options.add_argument('--no-sandbox')
                 self.options.add_argument('--window-size=1420,1080')
@@ -51,7 +54,7 @@ class Crawler:
                 self.options.add_argument('--disable-gpu')
                 self.options.add_argument('--ignore-certificate-errors')
                 self.driver = webdriver.Firefox(
-                    executable_path=os.path.join(os.path.abspath('.'), 'geckodriver'),
+                    executable_path=os.path.join(os.path.abspath('.'), self.executable),
                     firefox_options=self.options,
                 )
                 break
@@ -88,6 +91,8 @@ with ff as driver:
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "username"))).send_keys(RUCKUS_USER)
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "password"))).send_keys(RUCKUS_PASS)
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.NAME, "ok"))).click()
+    success_logon = WebDriverWait(driver, 20).until(EC.title_contains('Dashboard'))
+    print((lambda x: 'successful logon!' if x is True else 'failed logon!')(success_logon))
 
     WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'company')))
     # num_of_clients = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'num-client')))
