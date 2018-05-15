@@ -81,6 +81,9 @@ class Crawler:
 
     def __enter__(self):
         print('<<< starting browser... >>>')
+        # if calling the Class with a url parameter, do the "get url " method.
+        if self.url:
+            self.driver.get(self.url)
         return self.driver
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -95,7 +98,6 @@ class Crawler:
 def number_of_clients():
     ff = Crawler(url, 'chrome')
     with ff as driver:
-        driver.get(url)
         driver.get_screenshot_as_file(os.path.join(os.path.abspath('.'), 'chrome.png'))
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "username"))).send_keys(RUCKUS_USER)
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "password"))).send_keys(RUCKUS_PASS)
