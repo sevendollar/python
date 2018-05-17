@@ -28,11 +28,20 @@ class Crawler:
             # use the pre-defined value or let the user to input it from the console.
             self.user_defined_browser = (
                self.browser or
-               input('preferred browser?(default:chrome)\n(press enter to go for the default...) ')
+               input('preferred browser?(default:phantomjs)\n(press enter to go for the default...) ')
             )
-
-            # go for chrome browser which is the default.
-            if self.user_defined_browser in ('chrome', ''):
+            # go for phantomjs browser which is the default.
+            if self.user_defined_browser in ('phantomjs', ''):
+                # set the chrome webdriver executable depends on the OS.
+                self.executable = (lambda: 'phantomjs' if os.sys.platform == 'linux' else 'phantomjs.exe')()
+                self.driver = webdriver.PhantomJS(
+                    service_args=['--ignore-ssl-errors=true'],
+                    executable_path=os.path.join(os.path.abspath('.'), self.executable),
+                )
+                self.driver.set_window_size(1024, 768)
+                break
+            # go for chrome browser
+            elif self.user_defined_browser == 'chrome':
                 # set the chrome webdriver executable depends on the OS.
                 self.executable = (lambda: 'chromedriver' if os.sys.platform == 'linux' else 'chromedriver.exe')()
                 self.options = webdriver.ChromeOptions()
