@@ -34,8 +34,8 @@ if __name__ == '__main__':
         'user': 'jef',
         'password': 'jeflovespython',
     }
-    filename = ''
-    gridfs_col = 'jef_fs'
+    filename = 'jef_test'
+    gridfs_col = 'jef_test'
 
     # write block
     def write_file(name):
@@ -55,8 +55,14 @@ if __name__ == '__main__':
             db = m['jef_db']
             col = db['weather']
             fs = GridFS(db, gridfs_col)
+            d = {
+                'name': 'jef',
+                'sex': 'M',
+                'age': 13,
+                'occupation': 'python developer',
+            }
 
-            write_file(filename)
+            fs.put(b'hello jef', **d)
         print('done!')
     except FileNotFoundError:
         print('file not found!')
